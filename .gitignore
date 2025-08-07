@@ -210,3 +210,5 @@ data/
 unsloth_compiled_cache/
 *.csv
 outputs/
+lora/
+fft/
