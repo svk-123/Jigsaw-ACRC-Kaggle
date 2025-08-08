@@ -4,6 +4,9 @@ import os
 import pandas as pd
 import random
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # --- Configuration ---
 API_KEY = os.environ.get("GEMINI_API_KEY")
 if not API_KEY:
@@ -13,17 +16,17 @@ genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 # Set random seed for reproducibility
-random.seed(42)
+random.seed(11111)
 
 def load_data():
     """Load subreddits and rules from CSV files"""
     try:
         # Load subreddits - assuming CSV has a 'subreddit' column
-        subreddits_df = pd.read_csv('subreddits.csv')
+        subreddits_df = pd.read_csv('./data/synthetic_subreddit.csv')
         subreddits = subreddits_df['subreddit'].tolist()
         
         # Load rules - assuming CSV has a 'rule' column  
-        rules_df = pd.read_csv('rules.csv')
+        rules_df = pd.read_csv('./data/synthetic_rules.csv')
         rules = rules_df['rule'].tolist()
         
         print(f"Loaded {len(subreddits)} subreddits and {len(rules)} rules")
@@ -46,8 +49,34 @@ Negative Example 1: [comment that doesn't violate the rule]
 Positive Example 2: [comment that violates the rule]
 Negative Example 2: [comment that doesn't violate the rule]
 Test Comment: [comment for testing - randomly violates or doesn't violate the rule]
+Violates Rule: True or False for the given test comment
 
 Make the comments realistic for /r/{subreddit} and clearly show rule violations vs non-violations."""
+
+def parse_generated_response(response_text):
+    """Parse the generated response into structured data"""
+    if not response_text:
+        return {}
+    
+    parsed_data = {}
+    lines = response_text.strip().split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if line.startswith('Positive Example 1:'):
+            parsed_data['positive_example_1'] = line.replace('Positive Example 1:', '').strip()
+        elif line.startswith('Negative Example 1:'):
+            parsed_data['negative_example_1'] = line.replace('Negative Example 1:', '').strip()
+        elif line.startswith('Positive Example 2:'):
+            parsed_data['positive_example_2'] = line.replace('Positive Example 2:', '').strip()
+        elif line.startswith('Negative Example 2:'):
+            parsed_data['negative_example_2'] = line.replace('Negative Example 2:', '').strip()
+        elif line.startswith('Test Comment:'):
+            parsed_data['test_comment'] = line.replace('Test Comment:', '').strip()
+        elif line.startswith('Violates Rule:'):
+            parsed_data['violates_rule'] = line.replace('Violates Rule:', '').strip()
+    
+    return parsed_data
 
 async def generate_synthetic_data(subreddit, rule):
     """Generate synthetic moderation data using Gemini API"""
@@ -59,17 +88,43 @@ async def generate_synthetic_data(subreddit, rule):
         )
         
         if response.candidates and response.candidates[0].content.parts:
+            raw_response = response.candidates[0].content.parts[0].text
+            parsed_data = parse_generated_response(raw_response)
+            
             return {
                 'subreddit': subreddit,
-                'rule': rule, 
-                'generated_data': response.candidates[0].content.parts[0].text,
-                'error': None
+                'rule': rule,
+                'raw_generated_data': raw_response,  # Keep original for reference
+                'error': None,
+                **parsed_data  # Unpack parsed fields as separate columns
             }
         else:
-            return {'subreddit': subreddit, 'rule': rule, 'generated_data': None, 'error': 'No response'}
+            return {
+                'subreddit': subreddit, 
+                'rule': rule, 
+                'raw_generated_data': None, 
+                'error': 'No response',
+                'positive_example_1': None,
+                'negative_example_1': None,
+                'positive_example_2': None,
+                'negative_example_2': None,
+                'test_comment': None,
+                'violates_rule': None
+            }
             
     except Exception as e:
-        return {'subreddit': subreddit, 'rule': rule, 'generated_data': None, 'error': str(e)}
+        return {
+            'subreddit': subreddit, 
+            'rule': rule, 
+            'raw_generated_data': None, 
+            'error': str(e),
+            'positive_example_1': None,
+            'negative_example_1': None,
+            'positive_example_2': None,
+            'negative_example_2': None,
+            'test_comment': None,
+            'violates_rule': None
+        }
 
 async def process_batch_async(batch_data):
     """Process a batch of subreddit/rule combinations"""
@@ -89,8 +144,8 @@ async def main():
     subreddits, rules = load_data()
     
     # Generate random combinations
-    num_samples = 200  # Adjust as needed
-    batch_size = 10
+    num_samples = 5000  # Adjust as needed
+    batch_size = 100
     
     combinations = []
     for _ in range(num_samples):
@@ -112,13 +167,13 @@ async def main():
         
         results = await process_batch_async(batch)
         all_results.extend(results)
-        
+
         # Save batch results
         batch_df = pd.DataFrame(results)
         filename = f"synthetic_batch_{batch_num}.csv"
         batch_df.to_csv(filename, index=False)
         print(f"Saved batch to {filename}")
-    
+
     # Save all results
     final_df = pd.DataFrame(all_results)
     final_df.to_csv('synthetic_moderation_data.csv', index=False)
@@ -128,6 +183,10 @@ async def main():
     print(f"Unique subreddits used: {final_df['subreddit'].nunique()}")
     print(f"Unique rules used: {final_df['rule'].nunique()}")
     print(f"Success rate: {(final_df['error'].isna().sum() / len(final_df)) * 100:.1f}%")
+    
+    # Print column info
+    print(f"\nDataFrame columns: {list(final_df.columns)}")
+    print(f"DataFrame shape: {final_df.shape}")
 
 if __name__ == "__main__":
     asyncio.run(main())
