@@ -213,3 +213,5 @@ outputs/
 lora/
 fft/
 ml_runs/
+.~*
+~*
