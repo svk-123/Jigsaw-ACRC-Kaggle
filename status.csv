@@ -1,0 +1,4 @@
+parameters,model_type,test,Llama-3.2-1B-Inst,Qwen3-4B,Qwen3-8B
+base model,Lora-adapters,kaggle submission,0.543,0.584,0.684
+kaggle trainset finetune,Merged-fp16,kaggle submission,0.646,,
+batch-1-2-train,Lora-adapters,kaggle submission,0.584,0.761,
