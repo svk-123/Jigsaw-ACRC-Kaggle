@@ -13,7 +13,7 @@ if not API_KEY:
     raise ValueError("GEMINI_API_KEY environment variable not set")
 
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 # Set random seed for reproducibility
 random.seed(149831)
@@ -22,13 +22,13 @@ def load_data(csv_path):
     """Load subreddit rules data from CSV file"""
     try:
         df = pd.read_csv(csv_path)
-        required_columns = ['Subreddit', 'Rule Name', 'Rule Description']
+        required_columns = ['subreddit', 'formatted_rule']
         missing_columns = [col for col in required_columns if col not in df.columns]
         
         if missing_columns:
             raise ValueError(f"Missing required columns: {missing_columns}")
         
-        print(f"Loaded {len(df)} rules from {df['Subreddit'].nunique()} subreddits")
+        print(f"Loaded {len(df)} rules from {df['subreddit'].nunique()} subreddits")
         return df
         
     except FileNotFoundError as e:
@@ -43,7 +43,7 @@ def load_kaggle_examples(csv_path):
     try:
         df = pd.read_csv(csv_path)
         required_columns = ['subreddit', 'rule', 'positive_example_1', 'positive_example_2', 
-                           'negative_example_1', 'negative_example_2']
+                           'negative_example_1', 'negative_example_2','body']
         missing_columns = [col for col in required_columns if col not in df.columns]
         
         if missing_columns:
@@ -70,50 +70,38 @@ def get_random_example_comments(kaggle_df):
     # Create example_comments string with all examples
     example_comments = f"""
 Example Reddit Comments from /r/{random_row['subreddit']}:
+Rule Context: {random_row['rule']}
 
 Positive Examples (Rule Violations):
 - "{random_row['positive_example_1']}"
 - "{random_row['positive_example_2']}"
 
-Negative Examples (Good Comments):
+Negative Examples (Not Violating rules):
 - "{random_row['negative_example_1']}"
 - "{random_row['negative_example_2']}"
-
-Rule Context: {random_row['rule']}
+test_comment: {random_row['body']}
 """
     
     return example_comments
 
-def create_rule_processing_prompt(subreddit, rule_name, rule_description, example_comments):
+def create_rule_processing_prompt(subreddit, formatted_rule, example_comments):
     """Create prompt to format rule and generate realistic Reddit examples"""
     return f"""You are processing Reddit moderation rules for /r/{subreddit}.
 
 Given this rule:
-Rule Name: {rule_name}
-Rule Description: {rule_description}
+Rule: {formatted_rule}
 
 Use these REAL Reddit comment examples as inspiration for style and authenticity:
 {example_comments}
 
 Based on these real examples, perform these tasks:
 
-1. Create a concise, clear formatted version of this rule (around 8-12 words) that captures the essence for moderation purposes.
+Generate NEW realistic Reddit comment examples for /r/{subreddit} and Rule: {formatted_rule} that follow similar patterns to the provided examples. Make them authentic with Reddit language.
 
-2. Generate NEW realistic Reddit comment examples for /r/{subreddit} that follow similar patterns to the provided examples. Make them authentic with Reddit language including:
-   - Internet slang and Reddit terminology
-   - Casual grammar and spelling
-   - Emojis when appropriate
-   - Self-promotion attempts for positive examples
-   - Spam-like content patterns
-   - Gaming references and memes
-   - Casual/crude language
-   - ALL CAPS text occasionally
-   - Random promotional content
-
-Learn from the style and patterns in the provided real examples to create new, similar examples.
+Learn from the style and patterns in the provided real examples to create new, similar examples. Keep commnets with 10-50 words length.
 
 Format your response EXACTLY like this:
-Formatted Rule: [concise 1-line rule in 10-20 words]
+Formatted Rule: [original rule]
 Positive Example 1: [NEW realistic Reddit comment that violates the rule, inspired by the real examples]
 Negative Example 1: [NEW realistic Reddit comment that doesn't violate the rule]
 Positive Example 2: [NEW realistic Reddit comment that violates the rule, inspired by the real examples]
@@ -150,19 +138,18 @@ def parse_generated_response(response_text):
     
     return parsed_data
 
-async def process_single_rule(subreddit, rule_name, rule_description, kaggle_df):
+async def process_single_rule(subreddit, formatted_rule, kaggle_df):
     """Process a single rule - format it and generate realistic examples"""
     try:
         # Get random example comments from kaggle dataset
         example_comments = get_random_example_comments(kaggle_df)
         
-        prompt = create_rule_processing_prompt(subreddit, rule_name, rule_description, example_comments)
+        prompt = create_rule_processing_prompt(subreddit, formatted_rule, example_comments)
         
         response = await model.generate_content_async(
             contents=prompt,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.7,
-                top_p=0.9
+                temperature=1.5                
             )
         )
         
@@ -172,8 +159,7 @@ async def process_single_rule(subreddit, rule_name, rule_description, kaggle_df)
             
             return {
                 'Subreddit': subreddit,
-                'Rule Name': rule_name,
-                'Rule Description': rule_description,
+                'Rule Name': formatted_rule,
                 'Formatted Rule': parsed_data.get('formatted_rule'),
                 'Positive Example 1': parsed_data.get('positive_example_1'),
                 'Negative Example 1': parsed_data.get('negative_example_1'),
@@ -188,8 +174,7 @@ async def process_single_rule(subreddit, rule_name, rule_description, kaggle_df)
         else:
             return {
                 'Subreddit': subreddit,
-                'Rule Name': rule_name,
-                'Rule Description': rule_description,
+                'Rule Name': formatted_rule,
                 'Formatted Rule': None,
                 'Positive Example 1': None,
                 'Negative Example 1': None,
@@ -205,8 +190,7 @@ async def process_single_rule(subreddit, rule_name, rule_description, kaggle_df)
     except Exception as e:
         return {
             'Subreddit': subreddit,
-            'Rule Name': rule_name,
-            'Rule Description': rule_description,
+            'Rule Name': formatted_rule,
             'Formatted Rule': None,
             'Positive Example 1': None,
             'Negative Example 1': None,
@@ -222,8 +206,8 @@ async def process_single_rule(subreddit, rule_name, rule_description, kaggle_df)
 async def process_batch_async(batch_data, kaggle_df):
     """Process a batch of rules with kaggle examples"""
     tasks = []
-    for subreddit, rule_name, rule_description in batch_data:
-        tasks.append(process_single_rule(subreddit, rule_name, rule_description, kaggle_df))
+    for subreddit, formatted_rule in batch_data:
+        tasks.append(process_single_rule(subreddit, formatted_rule, kaggle_df))
     
     print(f"Processing {len(tasks)} rules with kaggle examples...")
     results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -242,23 +226,23 @@ async def process_batch_async(batch_data, kaggle_df):
 async def main():
     """Main function to process rules and generate realistic examples"""
     # Load input data
-    input_csv_path = './data/synthetic_generation/popular_subreddit_rules.csv'
-    kaggle_csv_path = './data/synthetic_generation/kaggle_train_test.csv'  # Update this path
+    input_csv_path = './data/synthetic_generation/popular_subreddit_rules_formatted.csv'
+    kaggle_csv_path = './data/synthetic_generation/batch_0_train.csv'  # Update this path
     
     print("Loading subreddit rules data...")
     rules_df = load_data(input_csv_path)
-    rules_df = rules_df.sample(frac=1).reset_index(drop=True)
-    rules_df = rules_df.iloc[:1000]  # Start with smaller sample
+    #rules_df = rules_df.sample(frac=1).reset_index(drop=True)
+    rules_df=rules_df[5000:]
 
     print("Loading kaggle examples dataset...")
     kaggle_df = load_kaggle_examples(kaggle_csv_path)
 
-    print(f"Processing {len(rules_df)} rules from {rules_df['Subreddit'].nunique()} subreddits")
+    print(f"Processing {len(rules_df)} rules from {rules_df['subreddit'].nunique()} subreddits")
     print(f"Using {len(kaggle_df)} example comments from kaggle dataset")
     
     # Show sample of input data
     print(f"\nSample input data:")
-    print(rules_df.head(3)[['Subreddit', 'Rule Name', 'Rule Description']])
+    print(rules_df.head(3)[['subreddit', 'formatted_rule']])
     
     print(f"\nSample kaggle examples:")
     print(kaggle_df.head(2))
@@ -266,17 +250,17 @@ async def main():
     # Prepare data for processing
     rule_combinations = []
     for _, row in rules_df.iterrows():
-        rule_combinations.append((row['Subreddit'], row['Rule Name'], row['Rule Description']))
+        rule_combinations.append((row['subreddit'], row['formatted_rule']))
     
     print(f"\nGenerating realistic Reddit-style examples using kaggle examples as inspiration...")
     
     all_results = []
-    batch_size = 20  # Smaller batch for testing
+    batch_size = 50  # Smaller batch for testing
     
     # Process in batches
     for i in range(0, len(rule_combinations), batch_size):
         batch = rule_combinations[i:i + batch_size]
-        batch_num = i // batch_size + 1
+        batch_num = i // batch_size + 100
         
         print(f"\n--- Processing batch {batch_num} ({len(batch)} rules) ---")
         
