@@ -10,8 +10,8 @@ def load_data():
     if 'KAGGLE_KERNEL_RUN_TYPE' in os.environ:
         # Running on Kaggle
         base_path = "/kaggle/input/jigsaw-agile-community-rules/"
-        df_train = pd.read_csv(f"{base_path}train.csv")
-        df_test = pd.read_csv(f"{base_path}test.csv")
+        df_train = pd.read_csv(f"{base_path}*train*.csv")
+        df_test = pd.read_csv(f"{base_path}*test*.csv")
     else:
         # Running locally
         base_path = "../data/tmp/"
@@ -68,7 +68,7 @@ def load_data():
     
     return df_train, df_test
 
-def formatting_prompts_func(examples, tokenizer):
+def formatting_prompts_func(examples):
     """
     Format Reddit moderation dataset for Alpaca training - matches inference format exactly
     """
@@ -110,12 +110,12 @@ Test sentence:
         response = examples['violates_rule'][i]
                 
         # Format the complete prompt
-        text = alpaca_prompt.format(instruction, input_text, response) + tokenizer.eos_token
+        text = alpaca_prompt.format(instruction, input_text, response)
         texts.append(text)
     
     return {"text": texts}
 
-def build_dataset(tokenizer):
+def build_dataset():
     """
     Build both train and test datasets using the new Alpaca format
     """
@@ -123,13 +123,13 @@ def build_dataset(tokenizer):
     
     train_dataset = Dataset.from_pandas(df_train)
     train_dataset = train_dataset.map(
-        lambda examples: formatting_prompts_func(examples, tokenizer), 
+        lambda examples: formatting_prompts_func(examples), 
         batched=True
     )
     
     test_dataset = Dataset.from_pandas(df_test)
     test_dataset = test_dataset.map(
-        lambda examples: formatting_prompts_func(examples, tokenizer), 
+        lambda examples: formatting_prompts_func(examples), 
         batched=True
     )
     

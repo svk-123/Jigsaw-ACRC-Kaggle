@@ -1,3 +1,9 @@
+# """
+# ZeRO Stage 1: Optimizer State Partitioning (2-4 GPU)
+# ZeRO Stage 2: + Gradient Partitioning (4-8 GPU)
+# ZeRO Stage 3: + Parameter Partitioning (8+ GPU)
+# """
+
 compute_environment: LOCAL_MACHINE
 debug: false
 deepspeed_config:
@@ -7,7 +13,7 @@ deepspeed_config:
   train_micro_batch_size_per_gpu: 2
   
   zero_stage: 2
-  offload_optimizer_device: none
+  offload_optimizer_device: "cpu"
   offload_param_device: none
   zero3_init_flag: false
   

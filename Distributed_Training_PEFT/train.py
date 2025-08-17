@@ -9,28 +9,28 @@ from config import LOCAL_MODEL_PATH, LORA_PATH, RANK, MAX_SEQ_LENGTH, EPOCHS, TR
 # ----------------------------
 # Load model & tokenizer
 # ----------------------------
-model = AutoModelForCausalLM.from_pretrained(
-    LOCAL_MODEL_PATH,
-    torch_dtype="auto",
-    device_map="auto",            
-)
-model.gradient_checkpointing_enable()  # reduce memory usage
+# model = AutoModelForCausalLM.from_pretrained(
+#     LOCAL_MODEL_PATH,
+#     torch_dtype="auto",
+#     device_map="auto",            
+# )
+# model.gradient_checkpointing_enable()  # reduce memory usage
 
-tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL_PATH)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
+# tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL_PATH)
+# if tokenizer.pad_token is None:
+#     tokenizer.pad_token = tokenizer.eos_token
 
 # ----------------------------
 # Build datasets
 # ----------------------------
-train_dataset, test_dataset = build_dataset(tokenizer)
+train_dataset, test_dataset = build_dataset()
 
 # ----------------------------
 # LoRA config
 # ----------------------------
 lora_config = LoraConfig(
     r=RANK,
-    lora_alpha=32,
+    lora_alpha=16,
     lora_dropout=0.1,
     bias="none",
     target_modules=[
@@ -47,9 +47,9 @@ sft_config = SFTConfig(
     output_dir=OUTPUT_PATH,
     num_train_epochs=EPOCHS,
     max_steps=MAX_ITER_STEPS,
-    per_device_train_batch_size=2,       # lower batch size
-    gradient_accumulation_steps=4,       # keep effective batch size
-    max_length=min(MAX_SEQ_LENGTH, 2048),  # cap to 1024 tokens if possible
+    per_device_train_batch_size=2,       
+    gradient_accumulation_steps=4,       
+    max_length=min(MAX_SEQ_LENGTH, 2048),  
 
     optim="paged_adamw_8bit",
     learning_rate=5e-4,
@@ -73,7 +73,7 @@ sft_config = SFTConfig(
     save_strategy="epoch",
     save_total_limit=3,
 
-    report_to="none",        # disable integrations like WandB
+    report_to="none",        
     packing=False,
     remove_unused_columns=False,
     dataset_text_field="text",
@@ -84,8 +84,8 @@ sft_config = SFTConfig(
 # Trainer
 # ----------------------------
 trainer = SFTTrainer(
-    model=model,
-    processing_class=tokenizer,
+    LOCAL_MODEL_PATH,
+    #processing_class=tokenizer,
     train_dataset=train_dataset,
     eval_dataset=test_dataset,
     peft_config=lora_config,
