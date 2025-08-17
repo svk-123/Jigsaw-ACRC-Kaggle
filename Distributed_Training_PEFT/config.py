@@ -1,5 +1,5 @@
 # Model paths and names
-LOCAL_MODEL_PATH = "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4"
+LOCAL_MODEL_PATH = "Qwen/Qwen2.5-14B-Instruct-GPTQ-Int4"
 LORA_PATH = "../lora/"
 DATA_PATH = "../data/tmp/"
 OUTPUT_PATH="../outputs/"
