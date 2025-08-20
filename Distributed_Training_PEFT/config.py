@@ -7,8 +7,8 @@ OUTPUT_PATH="../outputs/"
 # Training parameters
 MAX_SEQ_LENGTH = 2048
 RANK = 64
-MAX_ITER_STEPS = 100
-EPOCHS = 0
+MAX_ITER_STEPS = -1
+EPOCHS = 1
 SAMPLE_LEN="25k"
 
 # Kaggle upload configuration

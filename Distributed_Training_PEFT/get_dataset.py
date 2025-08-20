@@ -14,10 +14,10 @@ def load_data():
         df_test = pd.read_csv(f"{base_path}*test*.csv")
     else:
         # Running locally
-        base_path = "../data/tmp/"
+        base_path = "../data/final/"
         
         # Find all train files
-        train_files = glob.glob(f"{base_path}*train*.csv")
+        train_files = glob.glob(f"{base_path}df_train.csv")
         if train_files:
             train_dfs = [pd.read_csv(file) for file in train_files]
             df_train = pd.concat(train_dfs, ignore_index=True)
@@ -26,7 +26,7 @@ def load_data():
             raise FileNotFoundError(f"No train files found in {base_path}")
         
         # Find all test files
-        test_files = glob.glob(f"{base_path}*test*.csv")
+        test_files = glob.glob(f"{base_path}df_test.csv")
         if test_files:
             test_dfs = [pd.read_csv(file) for file in test_files]
             df_test = pd.concat(test_dfs, ignore_index=True)
