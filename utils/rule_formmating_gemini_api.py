@@ -172,11 +172,11 @@ async def process_batch_async(batch_data):
 async def main():
     """Main function to process and format rules"""
     # Load input data
-    input_csv_path = './data/synthetic_generation/popular_subreddit_rules.csv'  # Update this path to your CSV file
+    input_csv_path = '../data/synthetic_generation/popular_subreddit_rules.csv'  # Update this path to your CSV file
     
     print("Loading subreddit rules data...")
     rules_df = load_data(input_csv_path)
-    rules_df = rules_df.iloc[10000:]
+    rules_df = rules_df.iloc[12000:]
 
     print(f"Processing {len(rules_df)} rules from {rules_df['Subreddit'].nunique()} subreddits")
     
