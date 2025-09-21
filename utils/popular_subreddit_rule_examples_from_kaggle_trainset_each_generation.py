@@ -13,7 +13,7 @@ if not API_KEY:
     raise ValueError("GEMINI_API_KEY environment variable not set")
 
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Set random seed for reproducibility
 random.seed(149831)
@@ -226,13 +226,13 @@ async def process_batch_async(batch_data, kaggle_df):
 async def main():
     """Main function to process rules and generate realistic examples"""
     # Load input data
-    input_csv_path = './data/synthetic_generation/popular_subreddit_rules_formatted.csv'
+    input_csv_path = './data/synthetic_generation/popular_subreddit_rules_formatted_2.csv'
     kaggle_csv_path = './data/synthetic_generation/batch_0_train.csv'  # Update this path
     
     print("Loading subreddit rules data...")
     rules_df = load_data(input_csv_path)
     #rules_df = rules_df.sample(frac=1).reset_index(drop=True)
-    rules_df=rules_df[5000:]
+    rules_df=rules_df
 
     print("Loading kaggle examples dataset...")
     kaggle_df = load_kaggle_examples(kaggle_csv_path)
@@ -260,7 +260,7 @@ async def main():
     # Process in batches
     for i in range(0, len(rule_combinations), batch_size):
         batch = rule_combinations[i:i + batch_size]
-        batch_num = i // batch_size + 100
+        batch_num = i // batch_size 
         
         print(f"\n--- Processing batch {batch_num} ({len(batch)} rules) ---")
         
