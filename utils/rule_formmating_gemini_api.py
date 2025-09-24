@@ -172,11 +172,11 @@ async def process_batch_async(batch_data):
 async def main():
     """Main function to process and format rules"""
     # Load input data
-    input_csv_path = '../data/synthetic_generation/popular_subreddit_rules.csv'  # Update this path to your CSV file
+    input_csv_path = '/home/vino/ML_Projects/Jigsaw-ACRC-Kaggle/data/synthetic_generation/popular_subreddit_rules_kaggle_subreddit.csv'  # Update this path to your CSV file
     
     print("Loading subreddit rules data...")
     rules_df = load_data(input_csv_path)
-    rules_df = rules_df.iloc[12000:]
+    #rules_df = rules_df.iloc[12000:]
 
     print(f"Processing {len(rules_df)} rules from {rules_df['Subreddit'].nunique()} subreddits")
     
@@ -197,7 +197,7 @@ async def main():
     # Process in batches
     for i in range(0, len(rule_combinations), batch_size):
         batch = rule_combinations[i:i + batch_size]
-        batch_num = i // batch_size + 1 +100
+        batch_num = i // batch_size + 1
         
         print(f"\n--- Processing batch {batch_num} ({len(batch)} rules) ---")
         
@@ -214,7 +214,7 @@ async def main():
     # Save all results
     if all_results:
         final_df = pd.DataFrame(all_results)
-        output_path = 'formatted_subreddit_rules.csv'
+        output_path = 'formatted_subreddit_rules_kaggle_data.csv'
         final_df.to_csv(output_path, index=False)
         print(f"\n✅ Saved all formatted rules to {output_path}")
         
