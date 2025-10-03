@@ -7,3 +7,46 @@ Batch-train-1-2,Lora-adapters,kaggle submission,0.584,0.761,,,
 Batch-train-1-2-4-5,Lora-adapters,Batch-3-6,,0.935,,,
 Batch-train-1-2-4-5,Lora-adapters,Kaggle train test,,0.678,,,
 Batch-train-1-to-9,Lora-adapters,kaggle submission,,0.797,0.828,0.838,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+Train_dataset,pred_model_type,Epoch,MSL,R/A,,scoring_dataset,qwen2.5-3b-ins
+Base,Base,,2048,64/64,,df_test_0,0.649
+Base,Base,,2048,64/64,,kaggle_submission,0.633
+kdsr-1,Lora-adapters,2,2048,64/64,,kaggle_submission,0.627
+kdsr-1,Lora-adapters,2,2048,64/64,,df_test_0,0.678
+df_train_0,Lora-adapters,2,2048,64/64,,kaggle_submission,0.737
+df_train_0+kdsr-1,Lora-adapters,2,2048,64/64,,kaggle_submission,0.77
+df_train_wok_f0p6_10k,Lora-adapters,2,2048,64/64,,df_test_0,0.682
+df_train_wok_qkdsr-123,Lora-adapters,2,2048,64/64,,df_test_0,0.678
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+Model,Train-set-score,Samples used,,,,,
+Gemini-2.0-flash,0.54,1000,,,,,
+Gemini-2.5-flash,0.7,500,,,,,
+Gemini-2.5-pro,0.68,150,,,,,
+Gemma-27b,0.78,30,,,,,
+qwen2.5-7b-Instruct,0.6,2029,,,,,
+qwen2.5-14b-Instruct,0.668,2029,,,,,
+qwen2.5-32b-Instruct,0.681,2029,,,,,
+qwen2.5-72b-Instruct,0.677,2029,,,,,
