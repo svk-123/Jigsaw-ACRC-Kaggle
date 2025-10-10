@@ -1,0 +1,37 @@
+{
+  "id": "vinothkumarsekar89/jigsaw-lora-qwen25-3b-fp16",
+  "id_no": 93093855,
+  "title": "JIGSAW-LoRA-Qwen25-3B-FP16",
+  "code_file": "jigsaw-lora-qwen25-3b-fp16.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "keywords": [
+    "gpu"
+  ],
+  "dataset_sources": [],
+  "kernel_sources": [
+    "packagemanager/pm-93093855-at-10-04-2025-08-53-15"
+  ],
+  "competition_sources": [
+    "jigsaw-agile-community-rules"
+  ],
+  "model_sources": [
+    "metaresearch/llama-3.2/Transformers/1b-instruct/1",
+    "qwen-lm/qwen2.5/Transformers/14b-instruct-gptq-int4/1",
+    "qwen-lm/qwen2.5/Transformers/3b-instruct/1",
+    "vinothkumarsekar89/qwen25-14b-gptq-int4-jigsaw-acrc-lora-0to10/Transformers/01/1",
+    "vinothkumarsekar89/qwen25-14b-gptq-int4-jigsaw-acrc-lora-cml/Transformers/01/1",
+    "vinothkumarsekar89/qwen25-14b-gptq-int4-jigsaw-acrc-lora-tt/Transformers/01/1",
+    "vinothkumarsekar89/qwen25-14b-gptq-int4-jigsaw-acrc-lora-tt-0/Transformers/01/1",
+    "vinothkumarsekar89/qwen25-14b-gptq-int4-jigsaw-acrc-lora-wo-0/Transformers/01/1",
+    "vinothkumarsekar89/qwen25-3b-instruct-jigsaw-acrc-lora/Transformers/10/1",
+    "vinothkumarsekar89/qwen25-3b-instruct-jigsaw-acrc-lora/Transformers/13/1",
+    "vinothkumarsekar89/qwen25-3b-instruct-jigsaw-acrc-lora/Transformers/14/1",
+    "vinothkumarsekar89/qwen25-3b-instruct-jigsaw-acrc-lora/Transformers/12/1",
+    "vinothkumarsekar89/qwen25-3b-instruct-jigsaw-acrc-lora/Transformers/11/1"
+  ]
+}
