@@ -18,7 +18,7 @@ client = AsyncOpenAI(
 )
 
 # Set random seed for reproducibility
-random.seed(1436131)
+random.seed(11279)
 
 def load_data(csv_path):
     """Load subreddit rules data from CSV file"""
@@ -92,6 +92,12 @@ def create_rule_processing_prompt(subreddit, formatted_rule, example_comments, f
     """Create prompt to format rule and generate realistic Reddit examples"""
 
     # Determine test comment instruction based on force_violation parameter
+    import random
+
+    #here randomly set for violation is either True or False (code here)
+    if force_violation is None:
+        force_violation = random.choice([True, False])
+
     if force_violation is True:
         test_instruction = "Test Comment: [NEW realistic Reddit comment that VIOLATES the rule]"
         violates_instruction = 'Violates Rule: "Yes"'
@@ -99,10 +105,6 @@ def create_rule_processing_prompt(subreddit, formatted_rule, example_comments, f
         #print("force violation is False")
         test_instruction = "Test Comment: [NEW realistic Reddit comment that does NOT violate the rule]"
         violates_instruction = 'Violates Rule: "No"'
-    else:
-        #print("force violation is None")
-        test_instruction = "Test Comment: [NEW realistic Reddit comment for testing - randomly violates or doesn't violate the rule]"
-        violates_instruction = 'Violates Rule: "Yes" or "No" for the test comment'
 
     return f"""You are processing Reddit moderation rules for /r/{subreddit}.
 
@@ -156,7 +158,7 @@ def parse_generated_response(response_text):
     
     return parsed_data
 
-async def process_single_rule(subreddit, formatted_rule, kaggle_df, force_violation=False):
+async def process_single_rule(subreddit, formatted_rule, kaggle_df, force_violation=None): #change here to set True/False/None
     """Process a single rule - format it and generate realistic examples"""
     try:
         # Get random example comments from kaggle dataset
@@ -170,7 +172,7 @@ async def process_single_rule(subreddit, formatted_rule, kaggle_df, force_violat
                 {"role": "system", "content": "You are a helpful assistant that processes Reddit moderation rules and generates realistic examples."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=1.0,
+            temperature=1.5,
             stream=False
         )
 
@@ -351,4 +353,4 @@ if __name__ == "__main__":
     # For 2000 samples: result_df = asyncio.run(main(2000))
     # For 5000 samples: result_df = asyncio.run(main(5000))
     # For all data: result_df = asyncio.run(main())
-    result_df = asyncio.run(main(5000))
+    result_df = asyncio.run(main(10000))
