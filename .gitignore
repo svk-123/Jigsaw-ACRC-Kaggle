@@ -217,3 +217,8 @@ ml_runs/
 ~*
 !status.csv
 kaggle.json
+
+mlruns/
+saved_indices/
+workspace/
+
