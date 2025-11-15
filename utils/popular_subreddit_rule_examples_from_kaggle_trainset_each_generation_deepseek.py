@@ -18,7 +18,7 @@ client = AsyncOpenAI(
 )
 
 # Set random seed for reproducibility
-random.seed(11279)
+random.seed(1127911)
 
 def load_data(csv_path):
     """Load subreddit rules data from CSV file"""
@@ -253,7 +253,7 @@ async def main(sample_size=None):
         sample_size: Number of rules to sample (1000-10000). If None, uses all data.
     """
     # Load input data
-    input_csv_rules= '/home/vino/ML_Projects/Jigsaw-ACRC-Kaggle/data/synthetic_generation/community_rules.csv'
+    input_csv_rules= '/home/vino/ML_Projects/Jigsaw-ACRC-Kaggle/data/synthetic_generation/filtered_grouped_kaggle_rules.csv'
     input_csv_subreddits= '/home/vino/ML_Projects/Jigsaw-ACRC-Kaggle/data/synthetic_generation/subreddit_kaggle_list.csv'
     input_examples_csv_path = '/home/vino/ML_Projects/Jigsaw-ACRC-Kaggle/data/synthetic_generation/batch_0_train.csv'
 
@@ -353,4 +353,4 @@ if __name__ == "__main__":
     # For 2000 samples: result_df = asyncio.run(main(2000))
     # For 5000 samples: result_df = asyncio.run(main(5000))
     # For all data: result_df = asyncio.run(main())
-    result_df = asyncio.run(main(10000))
+    result_df = asyncio.run(main(30000))
